@@ -1,0 +1,15 @@
+Package: Resampling
+Type: Package
+Title: Resample 
+Version: 1.0
+Author: Coraline Qu
+Maintainer: Coraline Qu <qux1@mskcc.org>
+URL: https://github.com/Coraline66/Resampling
+Description: This package provides two-step resampling of data sets in order to generate new truth set and perform further subgroup analyses. 
+License: GPL-2
+LazyData: true
+RoxygenNote: 5.0.1.9000
+Suggests: knitr,
+    rmarkdown,
+    testthat
+VignetteBuilder: knitr
