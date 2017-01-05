@@ -31,6 +31,8 @@ The second-step resampling is implemented by functions `card` and `subrang()`. `
 
 # Standard workflow
 
+First of all, package *Resampling* needs to be installed. You can just use `install_github("Coraline66/Resampling")`. As `install_github` is a function from `devtools`, this package should be loaded before the installation.
+
 ## First-step resampling
 
 The first-step resampling is utilized for the construction of new truth set through function `rang(SEED, N, M, n)`. There are four parameters in `rang()`: 
