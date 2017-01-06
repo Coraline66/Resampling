@@ -21,13 +21,13 @@ In order to study the effect of replicates via performing gene differential expr
 
 ## Description
 
-Package *Resampling* provides a two-step resampling of corresponding data sets in order to generate new truth set and perform further subgroup gene differential expression analyses. It mainly consists of two parts: 
+Package *Resampling* provides a two-step resampling of the data sets provided by data package "mydata" in order to generate new truth set and perform further subgroup gene differential expression analyses. It mainly consists of two parts: 
 
 - first-step resampling: `rang()`
 - second-step resampling: `card`, `subrang()`
 
 The first-step resampling is realized via function `rang()`. This function returns a sample matrix by randomly generating a desired number of sample indices for certain times from original data set. New truth sets can be constructed through this sample matrix. 
-The second-step resampling is implemented by functions `card` and `subrang()`. `card` imports a sample matrix resultting from `rang()` and exports a list containing vectors with the information of sample partitions "liposarcoma" and "leiomyosarcoma" of the new truth sets, including their cardinalities. Note that `card` is only necessary when we deal with TCGA-sarc and it has to be executed before `subrang()`. The other function `subrang()` returns an index matrix which corresponds to a group of subsets of one new truth set. These subsets can be used in further differential expression analyses.
+The second-step resampling is implemented by functions `card` and `subrang()`. Note that `card` is only necessary when we deal with TCGA-sarc and it has to be executed before `subrang()`. This is because the data structure for TCGA-sarc is different from that for TCGA-luad and TCGA-brca. Paired samples come from the same patient in the latter cases, i.e., we only need to resample the indices of patients. Nevertheless, "dl(differentiated liposarcoma)" and "lm(leiomyosarcoma)", two types of sarcoma, are chosen to construct two sample conditions of TCGA-sarc. Moreover, they all come from different patients and possess different numbers of samples. Therefore, resampling has to be performed to "dl" and "lm" separately to obtain paired samples. Also, even if the total numbers of samples coincide for two new truth sets, they may differ in the partition of conditions "dl" and "lm". In this case, function `card` imports the sample matrix resultting from `rang()` and exports a list containing vectors with the information of sample partitions "dl" and "lm" of the new truth sets, including their cardinalities^[Here, the cardinality of a set is defined as the total number of elements in this set.]. The other function `subrang()` returns an index matrix which corresponds to a group of subsets of one new truth set. These subsets can be used in further differential expression analyses.
 
 # Standard workflow
 
@@ -55,19 +55,19 @@ In this example, 10 new truth sets are generated for TCGA-brca and each truth se
 
 Function `subrang()` together with `card()` achieve the second-step resampling and should only be invoked after the first-step resampling because they use the result matrix of `rang()` as an argument. Function `card()` has one argument `sam` which corresponds to the matrix above and it returns a list comprised of four vectors:
 
-+ `DL`: a vector of lists giving the sample indices of "liposarcoma" in matrix `sam`. `DL[[j]]` corresponds to the `jth` row of `sam`.
-+ `LM`: a vector of lists giving the sample indices of "leiomyosarcoma" in matrix `sam`. `LM[[j]]` corresponds to the `jth` row of `sam`.
-+ `dl`: a numeric vector of the cardinalities of sample condition "liposarcoma" in matrix `sam`. `dl[j]` corresponds to the `jth` row of `sam`.
-+ `lm`: a numeric vector of the cardinalities of sample condition "leiomyosarcoma" in matrix `sam`. `lm[j]` corresponds to the `jth` row of `sam`.
++ `DL`: a vector of lists giving the sample indices of "dl" in matrix `sam`. `DL[[j]]` corresponds to the `jth` row of `sam`.
++ `LM`: a vector of lists giving the sample indices of "lm" in matrix `sam`. `LM[[j]]` corresponds to the `jth` row of `sam`.
++ `dl`: a numeric vector of the cardinalities of sample condition "dl" in matrix `sam`. `dl[j]` corresponds to the `jth` row of `sam`.
++ `lm`: a numeric vector of the cardinalities of sample condition "lm" in matrix `sam`. `lm[j]` corresponds to the `jth` row of `sam`.
 
 Arguments involved in `subrang()` are listed as follows.
 
 * `SEED`: an integer used as a seed in `set.seed()`. It differs from the value used in `rang()`.
 * `N`: the number of iterations(times), positive integer.
-* `n`: a non-negative integer giving the number of indices chosen from the new truth set. Here the generated sample subset has a cardinality of `2*n`. `n` should be no more than `dim(sam)[2]` for TCGA-luad or TCGA-brca. As for TCGA-sarc, since the new truth set is composed of two sample conditions: liposarcoma and leiomyosarcoma, `n` should not exceed the smaller cardinality of these two conditions.
+* `n`: a non-negative integer giving the number of indices chosen from the new truth set. Here the generated sample subset has a cardinality of `2*n`. `n` should be no more than `dim(sam)[2]` for TCGA-luad or TCGA-brca. As for TCGA-sarc, since the new truth set is composed of two sample conditions: "dl" and "lm", `n` should not exceed the smaller cardinality of these two sample groups.
 * `sam`: matrix that is comprised of the indices of new truth sets. It's returned from `rang()`.
 * `j`: a positive integer giving the row index of matrix `sam` to choose from. `j` should be no larger than the number of rows of `sam`.
-* `type`: character indicating the type of data, e.g., "luad", "brca", "sarc". Note that double quotes are required.
+* `type`: character indicating the type of data, i.e., `type` = "luad" if the user wants to do resampling regarding TCGA-luad, `type` = "brca" for TCGA-brca and `type` = "sarc" for TCGA-sarc. Note that double quotes are required.
 
 `subrang()` returns an $N \times n$ index matrix representing a group of subsets of one new truth set. Note that parameter `j` determines which new truth set obtained from `rang()` is involved in `subrang()`. Each row of the returned matrix corresponds to the generated sample subsets for each iteration. The basic steps of second-step resampling can be shown as follows.
 
@@ -82,16 +82,29 @@ We use the same input in `rang()` as the preceding example and get `sam` as a $1
 
 # Examples
 
-In this section,  some examples with complete details are provided for users to get familiar with package "Resampling".
+In this section,  some examples with complete details are provided for users to get familiar with package "Resampling". In order to help users comprehend these examples, we give the data structure of TCGA-luad, TCGA-brca and TCGA-sarc as follows.
+
+```{r, echo=FALSE, results='asis'}
+data <- data.frame("luad"=c(57, 114, "normal--tumor", "N:57 / T:57"), "brca"=c(100, 200, "normal--tumor", "N:100 / T:100"), "sarc"=c(162, 162, "dl--lm", "dl:58 / lm:104"), row.names=c("NP", "NS", "SC", "NC"))
+knitr::kable(data)
+```
+
+In this table, "NP" and "NS" are short for number of patients and number of samples, respectively. "SC" stands for the sample conditions, as we defined in the preceding section, "dl-lm" means "differentiated liposarcoma-leiomyosarcoma". "NC" gives the number of samples for each condition, e.g., "N:100 / T:100" means that both the conditions(normal, tumor) possess 100 samples.
 
 ## Example I
 
 Here is the r code for the first example:
 
 ```{r, echo=TRUE, results='hold'}
+# load libraries
 library(parallel)
 library(Resampling)
+
+# first-step resampling
 sam <- rang(20161218, 100, 57, 50)
+
+# second-step resampling 
+# 3, 5, 10, 20, 40 pairs of samples are generated via parallel processing 
 no_cores <- detectCores() - 1
 cl <- makeCluster(no_cores)
 clusterExport(cl=cl, c("sam", "subrang"), envir=environment())
@@ -110,9 +123,15 @@ In this example, our goal is to resample the data set of TCGA-luad. First, we ne
 The second example is regarding the data set of TCGA-brca.
 
 ```{r, echo=TRUE, results='markup'}
+# load libraries
 library(parallel)
 library(Resampling)
+
+# first-step resampling
 sam <- rang(20161220, 50, 100, 80)
+
+# second-step resampling 
+# 3, 5, 10, 20, 50, 80 pairs of samples are generated via parallel processing 
 no_cores <- detectCores() - 1
 cl <- makeCluster(no_cores)
 clusterExport(cl=cl, c("sam", "subrang"), envir=environment())
@@ -131,12 +150,24 @@ During the process of first-step resampling, `80` pairs are randomly chosen 50 t
 Finally, we shall give an example to show how to perform "resampling" to the data set of TCGA-sarc. This is slightly different from the two cases above because the numbers of "liposarcoma" and "leiomyosarcoma" are not equal and we have to figure out the exact numbers for these two conditions before resampling. 
 
 ```{r, echo=TRUE, results='markup'}
+# load libraries
 library(parallel)
 library(Resampling)
+
+# first-step resampling
 sam <- rang(20161222, 10, 162, 140)
+
+# second-step resampling
+# use card() to get sample partitions of new truth sets
 len <- card(sam=sam)
+
+# number of "dl"s in the 10 new truth sets
 len$dl
+
+# number of "lm"s in the 10 new truth sets
 len$lm
+
+# 3, 5, 10, 20, 30, 40, 50 pairs of samples are generated via parallel processing 
 no_cores <- detectCores() - 1
 cl <- makeCluster(no_cores)
 clusterExport(cl=cl, c("sam", "subrang", "card"), envir=environment())
